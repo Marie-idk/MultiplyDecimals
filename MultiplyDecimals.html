@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gabriel's Math Adventure: Decimals Level 2</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Quicksand for rounded, friendly readability -->
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Confetti for Rewards -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- jsPDF for Report Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Quicksand', 'sans-serif'],
+                    },
+                    colors: {
+                        'pastel-mint': '#B5EAD7',
+                        'pastel-purple': '#C7CEEA',
+                        'pastel-pink': '#FFB7B2',
+                        'pastel-yellow': '#FFDAC1',
+                        'pastel-blue': '#A0C4FF',
+                        'soft-gray': '#F7F7F7',
+                        'text-dark': '#4A4A4A'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #F0F4F8;
+            color: #4A4A4A;
+        }
+        
+        /* Smooth transitions for all interactive elements */
+        .btn-hover {
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+        }
+        .btn-hover:active {
+            transform: scale(0.95);
+        }
+
+        /* Large input focus ring customization */
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(181, 234, 215, 0.8);
+        }
+
+        /* Hide number spinner on inputs */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Fade animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-card {
+            border-left: 4px solid #A0C4FF;
+            background-color: #F8FBFF;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Main Container: Compact Width -->
+    <div id="app-container" class="bg-white w-full max-w-lg rounded-[2rem] shadow-2xl overflow-hidden fade-in border-4 border-white">
+        
+        <!-- Header / Progress Area -->
+        <div class="bg-pastel-purple p-6 pb-10 relative">
+            <h1 class="text-2xl font-bold text-white text-center drop-shadow-sm mb-2">Math Adventure: Decimals</h1>
+            <div class="absolute bottom-0 left-0 w-full h-4 bg-white/30">
+                <div id="progress-bar" class="h-full bg-pastel-mint transition-all duration-500 ease-out" style="width: 0%;"></div>
+            </div>
+            <!-- Avatar/Icon -->
+            <div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-white p-3 rounded-full shadow-md">
+                <i class="fa-solid fa-calculator text-3xl text-pastel-blue"></i>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="pt-12 pb-8 px-6 text-center">
+
+            <!-- Intro Screen -->
+            <div id="intro-screen">
+                <h2 class="text-2xl font-bold text-text-dark mb-4">Hi Gabriel!</h2>
+                <p class="text-lg text-gray-500 mb-8">Ready for a challenge? We have <strong>15 Decimal Problems</strong> tailored just for you. Use the hints if you get stuck!</p>
+                <button onclick="startGame()" class="btn-hover bg-pastel-mint text-emerald-700 text-xl font-bold py-4 px-12 rounded-2xl shadow-md w-full">
+                    Start <i class="fa-solid fa-play ml-2"></i>
+                </button>
+            </div>
+
+            <!-- Game Screen -->
+            <div id="game-screen" class="hidden text-left">
+                <!-- Question Number -->
+                <div class="flex justify-between items-end mb-4 border-b-2 border-gray-100 pb-2">
+                    <span class="text-sm font-bold text-gray-400 uppercase tracking-widest">Question</span>
+                    <span id="question-counter" class="text-2xl font-bold text-pastel-blue">1 / 15</span>
+                </div>
+
+                <!-- The Math Problem -->
+                <div class="bg-soft-gray rounded-2xl p-6 text-center mb-6">
+                    <div id="math-problem" class="text-5xl font-bold text-gray-700 font-mono tracking-wider">
+                        <!-- Problem inserted via JS -->
+                    </div>
+                </div>
+
+                <!-- Hint Section (Toggle) -->
+                <button onclick="toggleHint()" class="mb-4 text-pastel-blue font-bold text-sm flex items-center gap-2 hover:text-blue-400 transition-colors">
+                    <i class="fa-regular fa-lightbulb"></i> Need a Hint?
+                </button>
+                
+                <div id="hint-box" class="hidden mb-6 text-sm text-gray-600 space-y-2">
+                    <!-- Concrete steps inserted via JS -->
+                </div>
+
+                <!-- Input Area -->
+                <div class="mb-6">
+                    <label for="answer-input" class="block text-gray-400 text-xs font-bold mb-2 uppercase">Type Answer Here</label>
+                    <input type="number" id="answer-input" step="any" class="w-full bg-white border-2 border-gray-200 rounded-xl p-4 text-3xl text-center text-gray-700 placeholder-gray-200 transition-all" placeholder="0">
+                </div>
+
+                <!-- Feedback Message -->
+                <div id="feedback-msg" class="h-8 mb-4 text-center font-bold text-lg"></div>
+
+                <!-- Next Button -->
+                <button id="next-btn" onclick="checkAnswer()" class="btn-hover bg-pastel-blue text-white text-xl font-bold py-4 w-full rounded-2xl shadow-md">
+                    Check Answer <i class="fa-solid fa-check ml-2"></i>
+                </button>
+            </div>
+
+            <!-- End Screen -->
+            <div id="end-screen" class="hidden">
+                <i class="fa-solid fa-trophy text-6xl text-pastel-yellow mb-4 animate-bounce"></i>
+                <h2 class="text-3xl font-bold text-text-dark mb-2">Excellent Work!</h2>
+                <p class="text-gray-500 mb-8">You finished the hard level!</p>
+                
+                <div class="bg-green-50 rounded-xl p-4 mb-8 border border-green-100">
+                    <p class="text-green-700 font-bold text-xl">Score: <span id="final-score">0</span> / 15</p>
+                </div>
+
+                <button onclick="downloadPDF()" class="btn-hover bg-pastel-pink text-red-700 text-lg font-bold py-4 px-8 rounded-2xl shadow-md w-full mb-4">
+                    <i class="fa-solid fa-file-pdf mr-2"></i> Download Assignment PDF
+                </button>
+                
+                <button onclick="location.reload()" class="text-gray-400 font-bold hover:text-gray-600 text-sm">
+                    Start Over
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- Game Data: Advanced Decimal Problems ---
+        const questions = [
+            { 
+                q: "1.2 × 1.2", 
+                a: 1.44, 
+                hint: ["Step 1: Ignore the dots. Multiply 12 × 12 = 144.", "Step 2: There are 2 decimal places total (one in each number).", "Step 3: Move the dot 2 spaces left from the end of 144."] 
+            },
+            { 
+                q: "15 × 0.5", 
+                a: 7.5, 
+                hint: ["Step 1: Multiplying by 0.5 is the same as finding HALF.", "Step 2: What is half of 15?", "Step 3: Or, multiply 15 × 5 = 75, then move the decimal 1 time."] 
+            },
+            { 
+                q: "2.5 × 0.4", 
+                a: 1, 
+                hint: ["Step 1: Ignore dots. Multiply 25 × 4 = 100.", "Step 2: There are 2 decimal places total.", "Step 3: Move the dot 2 spaces in 100. (1.00)"] 
+            },
+            { 
+                q: "3.5 × 2.0", 
+                a: 7, 
+                hint: ["Step 1: This is just 3.5 × 2.", "Step 2: Double 3.5.", "Step 3: 3.5 + 3.5 = ?"] 
+            },
+            { 
+                q: "0.15 × 0.3", 
+                a: 0.045, 
+                hint: ["Step 1: Ignore dots. Multiply 15 × 3 = 45.", "Step 2: Count decimal places. 0.15 has two. 0.3 has one. Total = 3.", "Step 3: Move dot 3 times. You will need to add a zero in front of 45."] 
+            },
+            { 
+                q: "12 × 0.2", 
+                a: 2.4, 
+                hint: ["Step 1: Multiply 12 × 2 = 24.", "Step 2: There is only 1 decimal place in the question.", "Step 3: Put the dot in the middle of 24."] 
+            },
+            { 
+                q: "5.5 × 0.4", 
+                a: 2.2, 
+                hint: ["Step 1: Ignore dots. Multiply 55 × 4.", "Step 2: 50×4=200. 5×4=20. So 55×4=220.", "Step 3: Move the dot 2 times because there are 2 decimal places total."] 
+            },
+            { 
+                q: "1.1 × 3.3", 
+                a: 3.63, 
+                hint: ["Step 1: Ignore dots. 11 × 33.", "Step 2: 11 × 33 = 363.", "Step 3: Count 2 decimal places total. Move the dot 2 times."] 
+            },
+            { 
+                q: "25 × 0.1", 
+                a: 2.5, 
+                hint: ["Step 1: Multiplying by 0.1 just moves the decimal one spot to the left.", "Step 2: Take 25 and move the invisible dot one jump left."] 
+            },
+            { 
+                q: "4.5 × 0.2", 
+                a: 0.9, 
+                hint: ["Step 1: Ignore dots. 45 × 2 = 90.", "Step 2: There are 2 decimal places total.", "Step 3: Move the dot 2 times in 90. Result is .90"] 
+            },
+            { 
+                q: "0.12 × 5", 
+                a: 0.6, 
+                hint: ["Step 1: Ignore dots. 12 × 5 = 60.", "Step 2: There are 2 decimal places in 0.12.", "Step 3: Move the dot 2 times in 60. Result is .60"] 
+            },
+            { 
+                q: "2.2 × 1.5", 
+                a: 3.3, 
+                hint: ["Step 1: Ignore dots. 22 × 15.", "Step 2: 22 × 10 = 220. 22 × 5 = 110. Add them: 330.", "Step 3: Move the dot 2 times."] 
+            },
+            { 
+                q: "8.1 × 0.5", 
+                a: 4.05, 
+                hint: ["Step 1: Find half of 8.1.", "Step 2: Or do 81 × 5 = 405.", "Step 3: Move the dot 2 times."] 
+            },
+            { 
+                q: "1.5 × 1.5", 
+                a: 2.25, 
+                hint: ["Step 1: Ignore dots. 15 × 15 = 225.", "Step 2: Count 2 decimal places total.", "Step 3: Place dot so 2 numbers are behind it."] 
+            },
+            { 
+                q: "0.25 × 4", 
+                a: 1, 
+                hint: ["Step 1: Think of money. 0.25 is a quarter.", "Step 2: If you have 4 quarters, how many dollars do you have?"] 
+            }
+        ];
+
+        // --- State Management ---
+        let currentIdx = 0;
+        let score = 0;
+        let userResponses = [];
+
+        // --- DOM Elements ---
+        const appContainer = document.getElementById('app-container');
+        const introScreen = document.getElementById('intro-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        const questionCounter = document.getElementById('question-counter');
+        const mathProblem = document.getElementById('math-problem');
+        const hintBox = document.getElementById('hint-box');
+        const answerInput = document.getElementById('answer-input');
+        const feedbackMsg = document.getElementById('feedback-msg');
+        const nextBtn = document.getElementById('next-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const finalScore = document.getElementById('final-score');
+
+        // --- Functions ---
+
+        function startGame() {
+            introScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            gameScreen.classList.add('fade-in');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            // Reset UI state
+            hintBox.classList.add('hidden');
+            hintBox.innerHTML = '';
+            answerInput.value = '';
+            feedbackMsg.textContent = '';
+            nextBtn.innerHTML = 'Check Answer <i class="fa-solid fa-check ml-2"></i>';
+            nextBtn.classList.remove('bg-gray-400', 'cursor-not-allowed', 'bg-pastel-mint', 'text-emerald-700');
+            nextBtn.classList.add('bg-pastel-blue', 'text-white');
+            nextBtn.onclick = checkAnswer;
+            answerInput.focus();
+
+            // Update Progress
+            const progress = (currentIdx / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // Update Content
+            questionCounter.innerText = `${currentIdx + 1} / ${questions.length}`;
+            mathProblem.innerText = questions[currentIdx].q;
+            
+            // Build Hint
+            const hints = questions[currentIdx].hint;
+            hints.forEach(text => {
+                const p = document.createElement('div');
+                p.className = 'step-card p-3 rounded-lg text-left';
+                p.innerText = text;
+                hintBox.appendChild(p);
+            });
+        }
+
+        function toggleHint() {
+            hintBox.classList.toggle('hidden');
+            if (!hintBox.classList.contains('hidden')) {
+                hintBox.classList.add('fade-in');
+            }
+        }
+
+        function checkAnswer() {
+            const rawInput = answerInput.value;
+            if (rawInput === '') return; // Do nothing if empty
+
+            const val = parseFloat(rawInput);
+            const correctVal = questions[currentIdx].a;
+
+            // Simple epsilon check for float precision
+            const isCorrect = Math.abs(val - correctVal) < 0.0001;
+
+            // Save response for PDF
+            userResponses.push({
+                q: questions[currentIdx].q,
+                userAnswer: rawInput,
+                correctVal: correctVal,
+                isCorrect: isCorrect
+            });
+
+            if (isCorrect) {
+                score++;
+                feedbackMsg.innerText = "Correct! Great job.";
+                feedbackMsg.className = "h-8 mb-4 text-center font-bold text-lg text-green-500 fade-in";
+                // Mini celebration
+                confetti({
+                    particleCount: 30,
+                    spread: 50,
+                    origin: { y: 0.7 },
+                    colors: ['#B5EAD7', '#FFB7B2']
+                });
+            } else {
+                feedbackMsg.innerText = `Nice try! The answer was ${correctVal}.`;
+                feedbackMsg.className = "h-8 mb-4 text-center font-bold text-lg text-pastel-pink fade-in";
+            }
+
+            // Change Button to "Next"
+            nextBtn.innerHTML = 'Next Question <i class="fa-solid fa-arrow-right ml-2"></i>';
+            nextBtn.classList.remove('bg-pastel-blue', 'text-white');
+            nextBtn.classList.add('bg-pastel-mint', 'text-emerald-700');
+            nextBtn.onclick = nextQuestion;
+        }
+
+        function nextQuestion() {
+            currentIdx++;
+            if (currentIdx < questions.length) {
+                renderQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            gameScreen.classList.add('hidden');
+            endScreen.classList.remove('hidden');
+            endScreen.classList.add('fade-in');
+            progressBar.style.width = '100%';
+            finalScore.innerText = score;
+
+            // Big Celebration
+            const duration = 3 * 1000;
+            const end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#FFB7B2', '#B5EAD7', '#C7CEEA']
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#FFB7B2', '#B5EAD7', '#C7CEEA']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+
+        // --- PDF Generation ---
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // PDF Config
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const margin = 20;
+            let yPos = 20;
+
+            // -- Header --
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
+            doc.text("Math Assignment Results", margin, yPos);
+            
+            yPos += 10;
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Student: Gabriel Mendoza`, margin, yPos);
+            
+            yPos += 7;
+            const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            doc.text(`Date: ${today}`, margin, yPos);
+            
+            yPos += 7;
+            doc.text(`Score: ${score} / 15`, margin, yPos);
+
+            yPos += 10;
+            doc.setDrawColor(200, 200, 200); // Light gray line
+            doc.line(margin, yPos, pageWidth - margin, yPos);
+            yPos += 10;
+
+            // -- Questions Loop --
+            doc.setFontSize(11);
+            
+            userResponses.forEach((item, index) => {
+                // Check if we need a new page
+                if (yPos > 270) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+
+                // Question Header
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(50, 50, 50);
+                doc.text(`Question ${index + 1}:  ${item.q}`, margin, yPos);
+                
+                yPos += 7;
+                
+                // User Answer
+                doc.setFont("helvetica", "normal");
+                if (item.isCorrect) {
+                    doc.setTextColor(0, 150, 0); // Green
+                    doc.text(`Result: Correct (${item.userAnswer})`, margin, yPos);
+                } else {
+                    doc.setTextColor(200, 0, 0); // Red
+                    doc.text(`Student Answer: ${item.userAnswer}`, margin, yPos);
+                    yPos += 6;
+                    doc.setTextColor(50, 50, 50);
+                    doc.text(`Correct Answer: ${item.correctVal}`, margin, yPos);
+                }
+
+                yPos += 8;
+                // Divider
+                doc.setDrawColor(230, 230, 230);
+                doc.line(margin, yPos, pageWidth - margin, yPos);
+                yPos += 10;
+            });
+
+            // Save
+            doc.save("Gabriel_Mendoza_Math_Assignment.pdf");
+        }
+        
+        // Handle "Enter" key on input
+        answerInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                // If button is in "Check" state
+                if(nextBtn.innerHTML.includes("Check")) {
+                    checkAnswer();
+                } else {
+                    nextQuestion();
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>
